@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Soil Crop Prediction System</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2rem;
+    }
+    .container {
+      background: rgba(30, 60, 20, 0.85);
+      border-radius: 1rem;
+      max-width: 480px;
+      padding: 2rem;
+      box-shadow: 0 0 25px rgba(0,0,0,0.8);
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+    header img {
+      width: 100%;
+      border-radius: 1rem 1rem 0 0;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      object-fit: cover;
+      height: 140px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 3px #000;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+      text-shadow: 1px 1px 2px #000;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      border-radius: 0.5rem;
+      border: none;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      outline-offset: 2px;
+      transition: background-color 0.3s ease;
+    }
+    input {
+      border: 1.5px solid #a7d129;
+      background-color: #f2f9e6;
+      color: #234d20;
+    }
+    input:focus {
+      border-color: #d8f07a;
+      box-shadow: 0 0 6px #d8f07a;
+      background-color: #fff;
+    }
+    button {
+      background-color: #a7d129;
+      color: #234d20;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 5px 15px rgba(167,209,41,0.6);
+    }
+    button:hover {
+      background-color: #94c61f;
+      box-shadow: 0 6px 20px rgba(148,198,31,0.8);
+    }
+    #result {
+      background: rgba(255 255 255 / 0.95);
+      color: #234d20;
+      border-radius: 1rem;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 0 15px #a7d129aa;
+      text-align: center;
+      display: none;
+      margin-top: 1rem;
+    }
+    #result h2 {
+      margin-bottom: 0.3rem;
+      font-weight: 700;
+    }
+    #result p {
+      margin-top: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80" alt="Green wheat field" />
+    </header>
+    <h1>Soil Crop Prediction System</h1>
+    <form id="soilForm">
+      <label for="pH">Soil pH (1-14)</label>
+      <input type="number" id="pH" name="pH" min="1" max="14" step="0.1" required />
+
+      <label for="N">Nitrogen (N)</label>
+      <input type="number" id="N" name="N" min="20" max="120" required />
+
+      <label for="P">Phosphorus (P)</label>
+      <input type="number" id="P" name="P" min="5" max="60" required />
+
+      <label for="K">Potassium (K)</label>
+      <input type="number" id="K" name="K" min="10" max="80" required />
+
+      <label for="moisture">Moisture (%)</label>
+      <input type="number" id="moisture" name="moisture" min="10" max="35" step="0.1" required />
+
+      <label for="temp">Temperature (°C)</label>
+      <input type="number" id="temp" name="temp" min="15.3" max="34.9" step="0.1" required />
+
+      <label for="rainfall">Rainfall (mm)</label>
+      <input type="number" id="rainfall" name="rainfall" min="50" max="250" step="0.1" required />
+
+      <button type="submit">Predict Crop</button>
+    </form>
+    <div id="result" aria-live="polite">
+      <h2 id="soilType"></h2>
+      <p id="cropText"></p>
+    </div>
+  </div>
+  <script>
+    const form = document.getElementById('soilForm');
+    const result = document.getElementById('result');
+    const soilTypeEl = document.getElementById('soilType');
+    const cropTextEl = document.getElementById('cropText');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        pH: parseFloat(form.pH.value),
+        N: parseFloat(form.N.value),
+        P: parseFloat(form.P.value),
+        K: parseFloat(form.K.value),
+        moisture: parseFloat(form.moisture.value),
+        temp: parseFloat(form.temp.value),
+        rainfall: parseFloat(form.rainfall.value)
+      };
+      try {
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error("Prediction failed");
+        const json = await res.json();
+        soilTypeEl.textContent = `Soil Type: ${json.soil_type}`;
+        cropTextEl.textContent = `Recommended Crop: ${json.recommended_crop}`;
+        result.style.display = 'block';
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
