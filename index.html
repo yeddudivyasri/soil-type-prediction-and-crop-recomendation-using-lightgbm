@@ -9,7 +9,7 @@
       margin: 0;
       padding: 0;
       min-height: 100vh;
-      background: url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+      background: url('p1.jpg') no-repeat center center fixed;
       background-size: cover;
       color: #fff;
       display: flex;
@@ -88,14 +88,15 @@
       display: none;
       margin-top: 1rem;
     }
-    #result h2 {
-      margin-bottom: 0.3rem;
-      font-weight: 700;
-    }
-    #result p {
-      margin-top: 0;
+    #result h2, #result p {
+      margin: 0.5rem 0;
       font-size: 1.2rem;
-      font-weight: 600;
+    }
+    #result .label {
+      font-weight: 700; /* Bold only for label text */
+    }
+    #result .value {
+      font-weight: 400; /* Normal for predicted value */
     }
   </style>
 </head>
@@ -110,30 +111,32 @@
       <input type="number" id="pH" name="pH" min="1" max="14" step="0.1" required />
 
       <label for="N">Nitrogen (N)</label>
-      <input type="number" id="N" name="N" min="20" max="120" required />
+      <input type="number" id="N" name="N" min="30" max="110" required />
 
       <label for="P">Phosphorus (P)</label>
-      <input type="number" id="P" name="P" min="5" max="60" required />
+      <input type="number" id="P" name="P" min="8" max="55" required />
 
       <label for="K">Potassium (K)</label>
-      <input type="number" id="K" name="K" min="10" max="80" required />
+      <input type="number" id="K" name="K" min="15" max="75" required />
 
       <label for="moisture">Moisture (%)</label>
-      <input type="number" id="moisture" name="moisture" min="10" max="35" step="0.1" required />
+      <input type="number" id="moisture" name="moisture" min="12" max="33" step="0.1" required />
 
       <label for="temp">Temperature (°C)</label>
-      <input type="number" id="temp" name="temp" min="15.3" max="34.9" step="0.1" required />
+      <input type="number" id="temp" name="temp" min="16" max="34" step="0.1" required />
 
       <label for="rainfall">Rainfall (mm)</label>
-      <input type="number" id="rainfall" name="rainfall" min="50" max="250" step="0.1" required />
+      <input type="number" id="rainfall" name="rainfall" min="60" max="240" step="0.1" required />
 
       <button type="submit">Predict Crop</button>
     </form>
+
     <div id="result" aria-live="polite">
-      <h2 id="soilType"></h2>
-      <p id="cropText"></p>
+      <h2><span class="label">Soil Type:</span> <span id="soilType" class="value"></span></h2>
+      <p><span class="label">Recommended Crop:</span> <span id="cropText" class="value"></span></p>
     </div>
   </div>
+
   <script>
     const form = document.getElementById('soilForm');
     const result = document.getElementById('result');
@@ -151,16 +154,22 @@
         temp: parseFloat(form.temp.value),
         rainfall: parseFloat(form.rainfall.value)
       };
+
       try {
         const res = await fetch('/predict', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
+
         if (!res.ok) throw new Error("Prediction failed");
+
         const json = await res.json();
-        soilTypeEl.textContent = `Soil Type: ${json.soil_type}`;
-        cropTextEl.textContent = `Recommended Crop: ${json.recommended_crop}`;
+
+        // Only labels bold, values normal
+        soilTypeEl.textContent = json.soil_type;
+        cropTextEl.textContent = json.recommended_crop;
+
         result.style.display = 'block';
       } catch (err) {
         alert('Error: ' + err.message);
